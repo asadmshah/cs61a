@@ -50,9 +50,7 @@ def factorial(n):
 	>>> factorial(4)
 	24
 	"""
-	if n <= 1:
-		return n
-	return n * factorial(n-1)
+	return product(n, lambda x: x)
 
 # Question 2
 
