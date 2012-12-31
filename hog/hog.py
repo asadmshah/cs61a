@@ -2,6 +2,7 @@
 
 from dice import four_sided_dice, six_sided_dice, make_test_dice
 from ucb import main, trace, log_current_line, interact
+from functools import reduce
 
 goal = 100			# The goal of Hog is to score 100 points.
 commentary = False	# Whether to display commentary for every roll.
@@ -286,78 +287,86 @@ def always_roll(n):
 # Experiments (Phase 2)
 
 def make_average(fn, num_samples=100):
-    """Return a function that returns the average_value of FN when called.
+	"""Return a function that returns the average_value of FN when called.
 
-    To implement this function, you will have to use *args syntax, a new Python
-    feature introduced in this project.  See the project description.
+	To implement this function, you will have to use *args syntax, a new Python
+	feature introduced in this project.  See the project description.
 
-    >>> dice = make_test_dice(3, 1, 5, 6)
-    >>> avg_dice = make_average(dice)
-    >>> avg_dice()
-    3.75
-    >>> avg_score = make_average(roll_dice)
-    >>> avg_score(2, dice, False)
-    6.0
+	>>> dice = make_test_dice(3, 1, 5, 6)
+	>>> avg_dice = make_average(dice)
+	>>> avg_dice()
+	3.75
+	>>> avg_score = make_average(roll_dice)
+	>>> avg_score(2, dice, False)
+	6.0
 
-    In this last example, two different turn scenarios are averaged.
-    - In the first, the player rolls a 3 then a 1, receiving a score of 1.
-    - In the other, the player rolls a 5 and 6, scoring 11.
-    Thus, the average value is 6.0.
-    """
-    "*** YOUR CODE HERE ***"
+	In this last example, two different turn scenarios are averaged.
+	- In the first, the player rolls a 3 then a 1, receiving a score of 1.
+	- In the other, the player rolls a 5 and 6, scoring 11.
+	Thus, the average value is 6.0.
+	"""
+	def return_function(*args):
+		total = 0
+		for _ in range(num_samples):
+			result = fn(*args)
+			total += result
+		return total / num_samples
+	return return_function
+
 
 def compare_strategies(strategy, baseline=always_roll(5)):
-    """Return the average win rate (out of 1) of STRATEGY against BASELINE."""
-    as_first = 1 - make_average(play)(strategy, baseline)
-    as_second = make_average(play)(baseline, strategy)
-    return (as_first + as_second) / 2  # Average the two results
+	"""Return the average win rate (out of 1) of STRATEGY against BASELINE."""
+	as_first = 1 - make_average(play)(strategy, baseline)
+	as_second = make_average(play)(baseline, strategy)
+	return (as_first + as_second) / 2  # Average the two results
 
 def eval_strategy_range(make_strategy, lower_bound, upper_bound):
-    """Return the best integer argument value for MAKE_STRATEGY to use against
-    the always-roll-5 baseline, between LOWER_BOUND and UPPER_BOUND (inclusive).
+	"""Return the best integer argument value for MAKE_STRATEGY to use against
+	the always-roll-5 baseline, between LOWER_BOUND and UPPER_BOUND (inclusive).
 
-    make_strategy -- A one-argument function that returns a strategy.
-    lower_bound -- lower bound of the evaluation range.
-    upper_bound -- upper bound of the evaluation range.
-    """
-    best_value, best_win_rate = 0, 0
-    value = lower_bound
-    while value <= upper_bound:
-        strategy = make_strategy(value)
-        win_rate = compare_strategies(strategy)
-        print('Win rate against the baseline using', value, 'value:', win_rate)
-        if win_rate > best_win_rate:
-            best_win_rate, best_value = win_rate, value
-        value += 1
-    return best_value
+	make_strategy -- A one-argument function that returns a strategy.
+	lower_bound -- lower bound of the evaluation range.
+	upper_bound -- upper bound of the evaluation range.
+	"""
+	best_value, best_win_rate = 0, 0
+	value = lower_bound
+	while value <= upper_bound:
+		strategy = make_strategy(value)
+		win_rate = compare_strategies(strategy)
+		print('Win rate against the baseline using', value, 'value:', win_rate)
+		if win_rate > best_win_rate:
+			best_win_rate, best_value = win_rate, value
+		value += 1
+	return best_value
 
 def run_experiments():
-    """Run a series of strategy experiments and report results."""
-    result = eval_strategy_range(always_roll, 1, 10)
-    print('Best always_roll strategy:', result)
+	"""Run a series of strategy experiments and report results."""
+	result = eval_strategy_range(always_roll, 1, 10)
+	print('Best always_roll strategy:', result)
 
-    if False: # Change to True when ready to test make_comeback_strategy
-        result = eval_strategy_range(make_comeback_strategy, 5, 15)
-        print('Best comeback strategy:', result)
+	if True: # Change to True when ready to test make_comeback_strategy
+		result = eval_strategy_range(make_comeback_strategy, 5, 15)
+		print('Best comeback strategy:', result)
 
-    if False: # Change to True when ready to test make_mean_strategy
-        result = eval_strategy_range(make_mean_strategy, 1, 10)
-        print('Best mean strategy:', result)
+	if False: # Change to True when ready to test make_mean_strategy
+		result = eval_strategy_range(make_mean_strategy, 1, 10)
+		print('Best mean strategy:', result)
 
-    "*** You may add additional experiments here if you wish ***"
+	"*** You may add additional experiments here if you wish ***"
 
 
 # Strategies
 
 def make_comeback_strategy(margin, num_rolls=5):
-    """Return a strategy that rolls one extra time when losing by MARGIN."""
-    "*** YOUR CODE HERE ***"
-    return always_roll(num_rolls)
+	"""Return a strategy that rolls one extra time when losing by MARGIN."""
+	if margin > 0:
+		num_rolls += 1
+	return always_roll(num_rolls)
 
 def make_mean_strategy(min_points, num_rolls=5):
-    """Return a strategy that attempts to give the opponent problems."""
-    "*** YOUR CODE HERE ***"
-    return always_roll(num_rolls)
+	"""Return a strategy that attempts to give the opponent problems."""
+
+	return always_roll(num_rolls)
 
 def final_strategy(score, opponent_score):
     """Write a brief description of your final strategy.
